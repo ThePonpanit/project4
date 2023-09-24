@@ -75,7 +75,11 @@ function App() {
         const data: number[][] = (await outputTensor.array()) as number[][];
 
         // Use the currentDate for this prediction.
-        const predictionDateStr = currentDate.toLocaleDateString();
+        const predictionDateStr = currentDate.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
 
         setPredictionResult({
           date: predictionDateStr,
@@ -118,7 +122,7 @@ function App() {
       <div className="App">
         <h1>Bitcoin Price Prediction</h1>
         <div style={{ color: "grey" }}>
-          The data was cut off on September 22, 2023.
+          The data was cut off on 22 September, 2023.
         </div>
         {isLoading && <p>Loading model...</p>}
         {error && <p className="error">{error}</p>}
