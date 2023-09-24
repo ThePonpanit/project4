@@ -69,7 +69,7 @@ button:hover:not(:disabled) {
 }
 
 p {
-  margin-top: 20px;
+  margin-top: 3px;
   font-size: 1.1em;
 }
 
@@ -132,4 +132,11 @@ div {
 
 .prediction-history li:last-child {
   border-bottom: none;
+}
+
+.latest-date {
+  background-color: #e6f7ff; /* Light Blue Background */
+  border: 1px solid #b3e0ff; /* Blue Border */
+  padding: 10px;
+  margin-bottom: 10px; /* Optional: To give some space between the latest date and the next one */
 }

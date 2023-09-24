@@ -15,7 +15,10 @@ function PredictionHistory({ history }: PredictionHistoryProps) {
       <h2>Prediction History</h2>
       <ul>
         {history.map((prediction, index) => (
-          <li key={index}>
+          <li
+            key={index}
+            className={index === history.length - 1 ? "latest-date" : ""}
+          >
             <p>Date:{prediction.date}</p>
             <p>Open: {prediction.open.toFixed(4)}</p>
             <p>High: {prediction.high.toFixed(4)}</p>
