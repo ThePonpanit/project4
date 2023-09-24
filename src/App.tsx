@@ -1,26 +1,33 @@
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
-import { load_model } from "./model"; // Importing the load_model function
+import { load_model } from "./model";
 import "./App.css";
 
+interface PredictionResult {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
 function App() {
-  // State to hold the model
   const [model, setModel] = React.useState<tf.GraphModel | null>(null);
-  // State to hold the number of days input by the user
-  const [numberOfDays, setNumberOfDays] = React.useState<number | "">("");
-  // State to hold the prediction result
-  const [predictionResult, setPredictionResult] = React.useState<any>(null);
-  // State to handle the loading status of the model.
+  const [predictionResult, setPredictionResult] =
+    React.useState<PredictionResult | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
-  // State to handle the error message.
   const [error, setError] = React.useState<string | null>(null);
 
-  // Effect hook to load the model when the component mounts
+  // Storing the last predicted value to use as input for the next prediction
+  const [lastPredictedValue, setLastPredictedValue] = React.useState<
+    number[][]
+  >([[0, 0, 0, 0, 0, 0]]);
+
   React.useEffect(() => {
     const loadModel = async () => {
       try {
         setIsLoading(true);
-        const loadedModel = await load_model(); // Using the imported load_model function
+        const loadedModel = await load_model();
         setModel(loadedModel);
       } catch (error) {
         console.error("Failed to load the model", error);
@@ -34,24 +41,34 @@ function App() {
   }, []);
 
   const handlePredict = async () => {
-    if (model && numberOfDays !== "") {
+    if (model) {
       try {
-        const oneDimension = [0, 0, 0, 0, 0, 0]; // one array of 6 zeros
-        const twoDimension = new Array(20)
-          .fill(null)
-          .map(() => [...oneDimension]); // 20 arrays of 6 zeros
-        const inputArray = [twoDimension]; // wrapped inside another array to make it 3D
+        let inputArray: number[][] = [[0, 0, 0, 0, 0, 0]]; // Or use the last predicted value
 
-        const inputTensor = tf.tensor3d(inputArray); // Creating 3D tensor
+        const twoDimension: number[][][] = [
+          new Array(20).fill(null).map(() => inputArray[0]),
+        ]; // Adjusted to shape [1,20,6]
 
-        // Use model.executeAsync() instead of model.predict()
+        const inputTensor = tf.tensor3d(
+          twoDimension,
+          [1, 20, 6], // Adjusted to match the shape of twoDimension
+          "float32"
+        );
+
         const outputTensor = (await model.executeAsync(
           inputTensor
         )) as tf.Tensor;
+        const data: number[][] = (await outputTensor.array()) as number[][];
 
-        // Getting the data from the output tensor
-        const data = await outputTensor.data();
-        setPredictionResult(String(data[0]));
+        setPredictionResult({
+          open: data[0][0],
+          high: data[0][1],
+          low: data[0][2],
+          close: data[0][3],
+          volume: data[0][4],
+        });
+
+        inputArray = [data[0]]; // Save the last predicted value
       } catch (error) {
         console.error("Failed to make a prediction", error);
         setError("Failed to make a prediction");
@@ -65,25 +82,18 @@ function App() {
       {isLoading && <p>Loading model...</p>}
       {error && <p>{error}</p>}
       <div>
-        <label>
-          Number of days:
-          <input
-            type="number"
-            value={numberOfDays}
-            onChange={(e) => setNumberOfDays(Number(e.target.value))}
-          />
-        </label>
-        <button
-          onClick={handlePredict}
-          disabled={isLoading || model === null || numberOfDays === ""}
-        >
-          Predict
+        <button onClick={handlePredict} disabled={isLoading || model === null}>
+          Predict Next Day
         </button>
       </div>
       {predictionResult && (
         <div>
           <h2>Prediction Result:</h2>
-          <p>{predictionResult}</p>
+          <p>
+            Open: {predictionResult.open}, High: {predictionResult.high}, Low:{" "}
+            {predictionResult.low}, Close: {predictionResult.close}, Volume:{" "}
+            {predictionResult.volume}
+          </p>
         </div>
       )}
     </div>
