@@ -2,8 +2,10 @@ import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
 import { load_model } from "./model";
 import "./App.css";
+import PredictionHistory from "./PredictionHistory";
 
 interface PredictionResult {
+  date: string;
   open: number;
   high: number;
   low: number;
@@ -17,6 +19,14 @@ function App() {
     React.useState<PredictionResult | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
+
+  // State to hold the history of predictions
+  const [predictionHistory, setPredictionHistory] = React.useState<
+    PredictionResult[]
+  >([]);
+
+  // State for the current date
+  const [currentDate, setCurrentDate] = React.useState(new Date(2023, 8, 23));
 
   // Storing the last predicted value to use as input for the next prediction
   const [lastPredictedValue, setLastPredictedValue] = React.useState<
@@ -59,8 +69,12 @@ function App() {
           inputTensor
         )) as tf.Tensor;
         const data: number[][] = (await outputTensor.array()) as number[][];
+        const dateFromModel = data[0][5]
+          ? new Date(data[0][5]).toLocaleDateString()
+          : "Unknown Date";
 
         setPredictionResult({
+          date: dateFromModel,
           open: data[0][0],
           high: data[0][1],
           low: data[0][2],
@@ -68,34 +82,61 @@ function App() {
           volume: data[0][4],
         });
 
+        setPredictionHistory((prevHistory) => [
+          ...prevHistory,
+          {
+            date: dateFromModel,
+            open: data[0][0],
+            high: data[0][1],
+            low: data[0][2],
+            close: data[0][3],
+            volume: data[0][4],
+          },
+        ]);
+
         inputArray = [data[0]]; // Save the last predicted value
       } catch (error) {
         console.error("Failed to make a prediction", error);
         setError("Failed to make a prediction");
       }
     }
+    setCurrentDate(
+      (prevDate) => new Date(prevDate.setDate(prevDate.getDate() + 1))
+    );
   };
 
   return (
-    <div className="App">
-      <h1>Bitcoin Price Prediction</h1>
-      {isLoading && <p>Loading model...</p>}
-      {error && <p>{error}</p>}
-      <div>
-        <button onClick={handlePredict} disabled={isLoading || model === null}>
-          Predict Next Day
-        </button>
-      </div>
-      {predictionResult && (
-        <div>
-          <h2>Prediction Result:</h2>
-          <p>
-            Open: {predictionResult.open}, High: {predictionResult.high}, Low:{" "}
-            {predictionResult.low}, Close: {predictionResult.close}, Volume:{" "}
-            {predictionResult.volume}
-          </p>
+    <div className="container">
+      <div className="App">
+        <h1>Bitcoin Price Prediction</h1>
+        <div style={{ color: "grey" }}>
+          The data was cut off on September 22, 2023.
         </div>
-      )}
+        {isLoading && <p>Loading model...</p>}
+        {error && <p className="error">{error}</p>}
+        <div>
+          <button
+            onClick={handlePredict}
+            disabled={isLoading || model === null}
+          >
+            Predict Next Day
+          </button>
+        </div>
+        {predictionResult && (
+          <div className="prediction-result">
+            <h2>Prediction Result:</h2>
+            <ul>
+              <li>Date:{predictionResult.date}</li>
+              <li>Open: {predictionResult.open.toFixed(4)}</li>
+              <li>High: {predictionResult.high.toFixed(4)}</li>
+              <li>Low: {predictionResult.low.toFixed(4)}</li>
+              <li>Close: {predictionResult.close.toFixed(4)}</li>
+              <li>Volume: {predictionResult.volume.toFixed(4)}</li>
+            </ul>
+          </div>
+        )}
+      </div>
+      <PredictionHistory history={predictionHistory} />
     </div>
   );
 }

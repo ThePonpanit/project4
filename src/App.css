@@ -1,17 +1,135 @@
-.App {
-  text-align: center;
-  max-width: 300px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  box-shadow: 0 0 10px #ccc;
+* {
+  font-family: "Söhne Mono", "Monaco", "Andale Mono", "Ubuntu Mono", monospace;
 }
 
-input {
-  margin-left: 10px;
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: top;
+  min-height: 100vh; /* vh units will make sure it takes the full height of the view port */
+  width: 100vw; /* vw units will make sure it takes the full width of the view port */
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  text-align: center;
+  margin: auto;
+  /* margin-top: 5%; centering the app vertically a bit */
+  /* margin-left: 5%; */
+  padding: 20px;
+  border: 1px solid #e0e0e0; /* lighter border color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* softer shadow */
+  background-color: #fff; /* white background color */
+}
+
+.prediction-result ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.prediction-result li {
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
 }
 
 button {
-  display: block;
-  margin-top: 10px;
+  background-color: #4caf50; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 20px; /* added more padding */
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px; /* rounded corners */
+  transition: background 0.3s ease; /* transition for hover effect */
+}
+
+button:disabled {
+  background-color: #ccc; /* Gray out when disabled */
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+p {
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+div {
+  margin-top: 20px;
+}
+
+/* Adding a class for error messages */
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+/* Styling for the prediction result */
+.prediction-result {
+  margin-top: 30px;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.container {
+  display: flex;
+  justify-content: space-around; /* You can use space-around or space-between based on your preference */
+  align-items: center; /* Aligns items vertically in the center */
+  width: 80vw; /* Or any value suitable for your layout, making sure it doesn’t exceed 100vw */
+  padding: 20px; /* Optional: for some spacing */
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); Optional: if you want a shadow around the whole container */
+}
+
+.App,
+.prediction-history {
+  flex: 1;
+  /* You can maintain existing styles */
+}
+
+.prediction-history {
+  flex: 1;
+  /* margin-left: 50%; */
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.prediction-history h2 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+.prediction-history ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.prediction-history li {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.prediction-history li:last-child {
+  border-bottom: none;
 }
