@@ -26,7 +26,7 @@ function App() {
   >([]);
 
   // State for the current date
-  const [currentDate, setCurrentDate] = React.useState(new Date(2023, 8, 23));
+  const [currentDate, setCurrentDate] = React.useState(new Date(2023, 8, 23)); // Months are zero-based
 
   // Storing the last predicted value to use as input for the next prediction
   const [lastPredictedValue, setLastPredictedValue] = React.useState<
@@ -50,31 +50,35 @@ function App() {
     loadModel();
   }, []);
 
+  // const updateDateAndPredict = () => {
+  //   setCurrentDate((prevDate) => {
+  //     const newDate = new Date(prevDate.setDate(prevDate.getDate() + 1));
+  //     handlePredict(newDate);
+  //     return newDate;
+  //   });
+  // };
+
   const handlePredict = async () => {
     if (model) {
       try {
-        let inputArray: number[][] = [[0, 0, 0, 0, 0, 0]]; // Or use the last predicted value
+        let inputArray: number[][] = lastPredictedValue;
 
         const twoDimension: number[][][] = [
           new Array(20).fill(null).map(() => inputArray[0]),
-        ]; // Adjusted to shape [1,20,6]
+        ];
 
-        const inputTensor = tf.tensor3d(
-          twoDimension,
-          [1, 20, 6], // Adjusted to match the shape of twoDimension
-          "float32"
-        );
+        const inputTensor = tf.tensor3d(twoDimension, [1, 20, 6], "float32");
 
         const outputTensor = (await model.executeAsync(
           inputTensor
         )) as tf.Tensor;
         const data: number[][] = (await outputTensor.array()) as number[][];
-        const dateFromModel = data[0][5]
-          ? new Date(data[0][5]).toLocaleDateString()
-          : "Unknown Date";
+
+        // Use the currentDate for this prediction.
+        const predictionDateStr = currentDate.toLocaleDateString();
 
         setPredictionResult({
-          date: dateFromModel,
+          date: predictionDateStr,
           open: data[0][0],
           high: data[0][1],
           low: data[0][2],
@@ -85,7 +89,7 @@ function App() {
         setPredictionHistory((prevHistory) => [
           ...prevHistory,
           {
-            date: dateFromModel,
+            date: predictionDateStr,
             open: data[0][0],
             high: data[0][1],
             low: data[0][2],
@@ -94,15 +98,19 @@ function App() {
           },
         ]);
 
-        inputArray = [data[0]]; // Save the last predicted value
+        // Increment currentDate for the next prediction
+        setCurrentDate((prevDate) => {
+          const newDate = new Date(prevDate);
+          newDate.setDate(newDate.getDate() + 1);
+          return newDate;
+        });
+
+        setLastPredictedValue([data[0]]);
       } catch (error) {
         console.error("Failed to make a prediction", error);
         setError("Failed to make a prediction");
       }
     }
-    setCurrentDate(
-      (prevDate) => new Date(prevDate.setDate(prevDate.getDate() + 1))
-    );
   };
 
   return (
